@@ -4,9 +4,9 @@ import SidebarHeader from '../../atoms/Sidebar/SidebarHeader'
 import styled from 'styled-components'
 
 const SidebarContainer = styled.div`
-  background: #f0f0f0;
+  background: #28eda8;
   width: 400px;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
 `;
