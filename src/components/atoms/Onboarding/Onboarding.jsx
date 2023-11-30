@@ -6,6 +6,7 @@ import axios from "axios";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 import TextField from "@material-ui/core/TextField";
 import { AuthContext } from "../../organisms/Auth/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const OnboardingContainer = styled.div`
   display: flex;
@@ -136,6 +137,8 @@ const Onboarding = () => {
     bio: "",
   });
 
+  const navigate = useNavigate();
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setUserDetails({ ...userDetails, [name]: value });
@@ -163,7 +166,6 @@ const Onboarding = () => {
         uploadedPhotoUrls.push(response.data.secure_url);
       } catch (error) {
         console.error("Erreur lors du téléchargement de l'image", error);
-        // Vous pourriez vouloir gérer les erreurs de manière plus sophistiquée ici
       }
     }
     return uploadedPhotoUrls;
@@ -185,7 +187,7 @@ const Onboarding = () => {
         photos: uploadedPhotosUrls,
       };
       axios
-        .post("http://localhost:8000/register", userData)
+        .post("https://localhost:8000/register", userData)
         .then((response) => {
           console.log("Inscription réussie :", response.data);
           localStorage.setItem("userToken", response.data.token);
@@ -193,6 +195,7 @@ const Onboarding = () => {
         .catch((error) => {
           console.error("Erreur d'inscription :", error);
         });
+      navigate("/");
     }
   };
 

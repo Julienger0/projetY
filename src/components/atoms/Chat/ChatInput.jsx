@@ -1,6 +1,8 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import styled from "styled-components";
+import { AuthContext } from "../../organisms/Auth/AuthContext";
+import { useParams } from "react-router-dom";
 
 const ChatInputContainer = styled.div`
   display: flex;
@@ -34,6 +36,8 @@ const SendButton = styled.button`
 `;
 const ChatInput = () => {
   const [message, setMessage] = useState("");
+  const { user } = useContext(AuthContext);
+  const { userId } = useParams();
 
   const handleChange = (e) => {
     setMessage(e.target.value);
@@ -42,14 +46,13 @@ const ChatInput = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append("idSender", "2");
-    formData.append("idReceiver", "3");
+    formData.append("idSender", user.id);
+    formData.append("idReceiver", userId);
     formData.append("text", message);
 
     axios
-      .post("http://localhost:8000/message", formData)
+      .post("https://localhost:8000/message", formData)
       .then((response) => {
-        console.log("Réponse du serveur : ", response.data);
         setMessage("");
       })
       .catch((error) => {

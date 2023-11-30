@@ -70,7 +70,6 @@ const ChatSidebar = () => {
       blabla et la que du blabla et la que du blabla et la que du blabla et la
       que du blabla
     </ChatSidebarContainer>
-    //ne pas oublier d'utiliser api externe pour livre/musique
   );
 };
 

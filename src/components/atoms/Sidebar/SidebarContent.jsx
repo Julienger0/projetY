@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../../organisms/Auth/AuthContext";
+
+export const SidebarContentdiv = styled.div`
+  overflow: auto;
+  height: 100%;
+`;
 
 export const SidebarContentContainer = styled.div`
   display: flex;
@@ -11,7 +17,7 @@ export const SidebarContentContainer = styled.div`
 `;
 
 export const SidebarContentImg = styled.img`
-  min-width: 80px;
+  width: 80px;
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
@@ -32,42 +38,44 @@ export const PreviewMessage = styled.p`
 `;
 
 const SidebarContent = () => {
-  const matches = [
-    {
-      id: 1,
-      name: "Match 1",
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      previewMessage: "Hello",
-    },
-    {
-      id: 2,
-      name: "Match 2",
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-      previewMessage:
-        "Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2Hello 2",
-    },
-  ];
+  const [matches, setMatches] = useState([]);
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    const fetchMatches = async () => {
+      try {
+        const response = await fetch(
+          `https://localhost:8000/get-matches/${user.id}`
+        );
+        const data = await response.json();
+        setMatches(data.matches);
+      } catch (error) {
+        console.error("Error while retrieving matches :", error);
+      }
+    };
+
+    fetchMatches();
+  }, [user.id]);
+
   const navigateToChat = (userId) => {
     navigate(`/chat/${userId}`);
   };
   return (
-    <div>
+    <SidebarContentdiv>
       {matches.map((match, index) => (
         <SidebarContentContainer
           key={index}
           onClick={() => navigateToChat(match.id)}
         >
-          <SidebarContentImg src={match.image} />
+          <SidebarContentImg src={match.photo} />
           <SidebarContentText>
             <MatchName>{match.name}</MatchName>
             <PreviewMessage>{match.previewMessage.slice(0, 50)}</PreviewMessage>
           </SidebarContentText>
         </SidebarContentContainer>
       ))}
-    </div>
+    </SidebarContentdiv>
   );
 };
 

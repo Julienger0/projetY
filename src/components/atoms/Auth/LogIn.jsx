@@ -72,7 +72,7 @@ const LogIn = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8000/login",
+        "https://localhost:8000/login",
         formData
       );
       localStorage.setItem("userToken", response.data.token);
@@ -80,7 +80,6 @@ const LogIn = () => {
         ...response.data.user,
         token: response.data.token,
       };
-
       setUser(userWithToken);
       navigate("/home");
     } catch (error) {

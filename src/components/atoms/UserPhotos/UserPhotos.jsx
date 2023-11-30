@@ -1,64 +1,13 @@
-import React from "react";
-import Gallery from "react-image-gallery";
+import React, { useState, useEffect, useContext } from "react";
+import axios from "axios";
 import styled from "styled-components";
-import "react-image-gallery/styles/css/image-gallery.css";
 import TinderCard from "react-tinder-card";
-
-const images = [
-  [
-    {
-      original:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1887&q=80",
-    },
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ],
-  [
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ],
-  [
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ],
-  [
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ],
-  [
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-    {
-      original:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=1974&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    },
-  ],
-];
+import Gallery from "react-image-gallery";
+import "react-image-gallery/styles/css/image-gallery.css";
+import { AuthContext } from "../../organisms/Auth/AuthContext";
 
 const ImgContainer = styled.div`
-  width: 250px;
+  width: 350px;
   height: auto;
   border-radius: 15px;
   overflow: hidden;
@@ -70,27 +19,56 @@ const ImgContainer = styled.div`
   }
 `;
 
-const UserPhotos = ({ showNav, currentImageIndex, tinderCardRef, swipe }) => {
+const UserPhotos = ({ showNav, tinderCardRef, swipe, setCurrentUserId }) => {
+  const [users, setUsers] = useState([]);
+  const { user } = useContext(AuthContext);
+
+  const formatImages = (photos) => {
+    return photos.map((photo) => ({
+      original: photo.replace(".png", ""),
+    }));
+  };
+
+  useEffect(() => {
+    axios
+      .get(`https://localhost:8000/get-unseen-users/${user.id}`)
+      .then((response) => {
+        setUsers(response.data);
+        if (users.length > 0) {
+          setCurrentUserId(users[0].id);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching unseen users", error);
+      });
+  }, [users, setCurrentUserId, user.id]);
   return (
-    <TinderCard
-      key={currentImageIndex}
-      ref={tinderCardRef}
-      onCardLeftScreen={swipe}
-      preventSwipe={["up", "down"]}
-    >
-      <ImgContainer>
-        <Gallery
-          items={images[currentImageIndex]}
-          showBullets={false}
-          showThumbnails={false}
-          showFullscreenButton={false}
-          showPlayButton={false}
-          useBrowserFullscreen={false}
-          showNav={showNav}
-          autoPlay={false}
-        />
-      </ImgContainer>
-    </TinderCard>
+    <>
+      {users.length > 0 ? (
+        <TinderCard
+          key={users[0].id}
+          ref={tinderCardRef}
+          onCardLeftScreen={() => swipe("left", users[0].id)}
+          onCardRightScreen={() => swipe("right", users[0].id)}
+          preventSwipe={["up", "down"]}
+        >
+          <ImgContainer>
+            <Gallery
+              items={formatImages(users[0].photos)}
+              showBullets={false}
+              showThumbnails={false}
+              showFullscreenButton={false}
+              showPlayButton={false}
+              useBrowserFullscreen={false}
+              showNav={showNav}
+              autoPlay={false}
+            />
+          </ImgContainer>
+        </TinderCard>
+      ) : (
+        <p>No users found.</p>
+      )}
+    </>
   );
 };
 

@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import UserPhotos from "../../atoms/UserPhotos/UserPhotos";
 import UserInformations from "../../atoms/UserInformations/UserInformations";
-import styled, { keyframes } from "styled-components";
+import styled from "styled-components";
 import UserCardButtons from "../../atoms/UserCardButtons/UserCardButtons";
-import TinderCard from "react-tinder-card";
+import { AuthContext } from "../../organisms/Auth/AuthContext";
+import axios from "axios";
 
 const Container = styled.div`
   display: flex;
@@ -68,43 +69,38 @@ const UserInfoOverlay = styled.div`
 
 const UserCard = () => {
   const [showUserInfo, setShowUserInfo] = useState(false);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const tinderCardRef = React.createRef();
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const { user } = useContext(AuthContext);
 
-  const handleShowUserInfo = () => {
-    setShowUserInfo(true);
-  };
-
-  const handleHideUserInfo = () => {
-    setShowUserInfo(false);
-  };
-
-  const swipe = async (direction) => {
+  const handleShowUserInfo = () => setShowUserInfo(true);
+  const handleHideUserInfo = () => setShowUserInfo(false);
+  const swipe = async (direction, userId) => {
     if (tinderCardRef.current) {
       await tinderCardRef.current.swipe(direction);
-      setCurrentImageIndex(currentImageIndex + 1);
-      console.log(`Swiped ${direction}`);
+      const action = direction === "left" ? "dislike" : "like";
+      axios
+        .post(`https://localhost:8000/user-action`, {
+          userId: user.id,
+          targetUserId: userId,
+          actionType: action,
+        })
+        .catch((error) => console.error("Erreur :", error));
     }
   };
+
   return (
     <Container>
       <UserCardContainer>
-        {/* <TinderCard
-          ref={tinderCardRef}
-          onCardLeftScreen={onSwipe}
-          preventSwipe={["up", "down"]}
-        > */}
         <UserPhotos
           showNav={!showUserInfo}
-          currentImageIndex={currentImageIndex}
           tinderCardRef={tinderCardRef}
           swipe={swipe}
+          setCurrentUserId={setCurrentUserId}
         />
-        {/* </TinderCard> */}
-
         {showUserInfo ? (
           <UserInfoOverlay>
-            <UserInformations />
+            <UserInformations userId={currentUserId} />
             <CancelButton onClick={handleHideUserInfo}>Cancel</CancelButton>
           </UserInfoOverlay>
         ) : (

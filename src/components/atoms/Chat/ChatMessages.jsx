@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import { useContext } from "react";
+import { AuthContext } from "../../organisms/Auth/AuthContext";
+import { useParams } from "react-router-dom";
 
 const ChatMessagesContainer = styled.div`
   display: flex;
@@ -31,86 +34,39 @@ const MessageSent = styled(MessageContainer)`
 `;
 const ChatMessages = () => {
   const [messages, setMessages] = useState([]);
+  const { user } = useContext(AuthContext);
+  const { userId } = useParams();
   useEffect(() => {
-    const formData = new FormData();
-    formData.append("idSender", "2");
-    formData.append("idReceiver", "3");
+    const fetchMessages = () => {
+      const formData = new FormData();
+      formData.append("idSender", user.id);
+      formData.append("idReceiver", userId);
 
-    axios
-      .post("http://localhost:8000/messages", formData)
-      .then((response) => {
-        setMessages(response.data);
-        console.log(response.data);
-      })
-      .catch((error) => {
-        console.error("There was an error!", error);
-      });
-  }, []);
+      axios
+        .post("https://localhost:8000/messages", formData)
+        .then((response) => {
+          setMessages(response.data);
+        })
+        .catch((error) => {
+          console.error("There was an error!", error);
+        });
+    };
+    fetchMessages();
+
+    const interval = setInterval(fetchMessages, 1000); // Rafraîchir les messages toutes les 5 secondes
+
+    return () => clearInterval(interval); // Nettoyage de l'intervalle
+  }, [userId, user.id]);
   return (
-    <>
-      <ChatMessagesContainer>
-        {messages.map((message, index) =>
-          message.idSender === 2 ? (
-            <MessageSent key={index}>{message.text}</MessageSent>
-          ) : (
-            <MessageReceived key={index}>{message.text}</MessageReceived>
-          )
-        )}
-      </ChatMessagesContainer>
-      {/* <ChatMessagesContainer>
-        <MessageReceived>TEST MESSAGE1</MessageReceived>
-        <MessageReceived>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageReceived>
-
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>TESTMESSAGE3</MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-        <MessageSent>
-          TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST MESSAGE2TEST
-          MESSAGE2TEST MESSAGE2
-        </MessageSent>
-      </ChatMessagesContainer> */}
-    </>
+    <ChatMessagesContainer>
+      {messages.map((message, index) =>
+        message.idSender === user.id ? (
+          <MessageSent key={index}>{message.text}</MessageSent>
+        ) : (
+          <MessageReceived key={index}>{message.text}</MessageReceived>
+        )
+      )}
+    </ChatMessagesContainer>
   );
 };
 
